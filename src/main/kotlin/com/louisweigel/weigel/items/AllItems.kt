@@ -4,9 +4,11 @@ import com.louisweigel.weigel.WeigelCreate
 import com.tterrag.registrate.util.entry.RegistryEntry
 
 object AllItems {
-    val HOME_ITEM: RegistryEntry<HomeItem> =
-        WeigelCreate.REGISTRATE.item("home", ::HomeItem)
-            .register()
+    val HOME_ITEM = WeigelCreate.REGISTRATE.item<HomeItem>("home", ::HomeItem)
+        .properties { p -> p.maxCount(1) }
+        .lang("Home")
+        .defaultModel()
+        .register()
 
     // Load this class
     fun register() {}
