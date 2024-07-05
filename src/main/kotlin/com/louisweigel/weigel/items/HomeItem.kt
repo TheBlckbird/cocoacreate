@@ -1,12 +1,17 @@
 package com.louisweigel.weigel.items
 
+import com.louisweigel.weigel.data_persistance.PlayerData
 import com.louisweigel.weigel.data_persistance.StateSaverAndLoader
+import net.fabricmc.fabric.api.dimension.v1.FabricDimensions
 import net.minecraft.entity.player.PlayerEntity
 import net.minecraft.item.Item
 import net.minecraft.item.ItemStack
+import net.minecraft.server.PlayerManager
 import net.minecraft.text.Text
 import net.minecraft.util.Hand
 import net.minecraft.util.TypedActionResult
+import net.minecraft.util.math.Vec3d
+import net.minecraft.world.TeleportTarget
 import net.minecraft.world.World
 
 class HomeItem(settings: Settings?) : Item(settings) {
@@ -47,25 +52,24 @@ class HomeItem(settings: Settings?) : Item(settings) {
         val newX = if (x < 0) x.toDouble() - 0.5 else x.toDouble() + 0.5
         val newZ = if (z < 0) z.toDouble() - 0.5 else z.toDouble() + 0.5
 
-        player.teleport(newX, y, newZ);
+        FabricDimensions.teleport(player, world.server?.overworld, TeleportTarget(Vec3d(newX, y, newZ), Vec3d.ZERO, 0F, 0F))
         player.itemCooldownManager.set(this, 100);
         return null;
     }
 
     private fun setPosition(world: World, player: PlayerEntity, hand: Hand): Text? {
-        val pos = player.pos
+        val dimensionValue = world.registryKey.value
+        if (dimensionValue.namespace + ":" + dimensionValue.path != "minecraft:overworld") {
+            return Text.literal("Your home must be in the Overworld")
+        }
 
         val playerState = StateSaverAndLoader.loadPlayerData(player) ?: return Text.literal("Something went wrong")
+        val pos = player.pos
 
         playerState.homeIsSet = true
         playerState.homeX = pos.x.toInt()
         playerState.homeY = pos.y
         playerState.homeZ = pos.z.toInt()
-
-        val dimensionValue = world.registryKey.value
-        if (dimensionValue.namespace + ":" + dimensionValue.path != "minecraft:overworld") {
-            return Text.literal("Your home must be in the Overworld")
-        }
 
         return null
     }
