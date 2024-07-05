@@ -58,8 +58,8 @@ class StateSaverAndLoader : PersistentState() {
             return state
         }
 
-        fun loadPlayerData(player: PlayerEntity?): PlayerData? {
-            val serverState = player?.server?.let { load(it) }
+        fun loadPlayerData(player: PlayerEntity): PlayerData? {
+            val serverState = player.server?.let { load(it) }
             val playerState = serverState?.players?.computeIfAbsent(player.uuid) { _ -> PlayerData() }
 
             return playerState
