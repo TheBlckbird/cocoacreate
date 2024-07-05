@@ -1,39 +1,48 @@
 package com.louisweigel.weigel.items
 
 import com.louisweigel.weigel.data_persistance.StateSaverAndLoader
-import com.louisweigel.weigel.WeigelCreate
 import net.minecraft.entity.player.PlayerEntity
 import net.minecraft.item.Item
 import net.minecraft.item.ItemStack
-import net.minecraft.nbt.NbtCompound
-import net.minecraft.server.world.ServerWorld
 import net.minecraft.text.Text
 import net.minecraft.util.Hand
 import net.minecraft.util.TypedActionResult
 import net.minecraft.world.World
-import org.apache.logging.log4j.core.jmx.Server
 
 class HomeItem(settings: Settings?) : Item(settings) {
     override fun use(world: World, player: PlayerEntity, hand: Hand): TypedActionResult<ItemStack> {
+        if (world.isClient) {
+            return TypedActionResult.success(player.getStackInHand(hand));
+        }
+
+
         if (player.isSneaking) {
-            setPosition(world, player, hand);
+            val maybeError = setPosition(world, player, hand)
+
+            if (maybeError != null) {
+                player.sendMessage(maybeError, true)
+            }
         } else {
-            teleport(world, player, hand);
+            val maybeError = teleport(world, player, hand)
+
+            if (maybeError != null) {
+                player.sendMessage(maybeError, true)
+            }
         }
 
         return TypedActionResult.success(player.getStackInHand(hand));
     }
 
-    fun teleport(world: World, player: PlayerEntity, hand: Hand): String? {
-        val serverState = StateSaverAndLoader.load(world.server ?: return "Something went wrong")
+    fun teleport(world: World, player: PlayerEntity, hand: Hand): Text? {
+        val playerState = StateSaverAndLoader.loadPlayerData(player) ?: return Text.literal("Something went wrong")
 
-        if (!serverState.homeIsSet) {
-            return "No position is set";
+        if (!playerState.homeIsSet) {
+            return Text.literal("No position is set")
         }
 
-        val x = serverState.homeX
-        val y = serverState.homeY
-        val z = serverState.homeZ
+        val x = playerState.homeX
+        val y = playerState.homeY
+        val z = playerState.homeZ
 
         val newX = if (x < 0) x.toDouble() - 0.5 else x.toDouble() + 0.5
         val newZ = if (z < 0) z.toDouble() - 0.5 else z.toDouble() + 0.5
@@ -43,20 +52,19 @@ class HomeItem(settings: Settings?) : Item(settings) {
         return null;
     }
 
-    private fun setPosition(world: World, player: PlayerEntity, hand: Hand): String? {
+    private fun setPosition(world: World, player: PlayerEntity, hand: Hand): Text? {
         val pos = player.pos
 
-        val server = world.server ?: return "Something went wrong"
-        val serverState = StateSaverAndLoader.load(server)
+        val playerState = StateSaverAndLoader.loadPlayerData(player) ?: return Text.literal("Something went wrong")
 
-        serverState.homeIsSet = true
-        serverState.homeX = pos.x.toInt()
-        serverState.homeY = pos.y
-        serverState.homeZ = pos.z.toInt()
+        playerState.homeIsSet = true
+        playerState.homeX = pos.x.toInt()
+        playerState.homeY = pos.y
+        playerState.homeZ = pos.z.toInt()
 
         val dimensionValue = world.registryKey.value
         if (dimensionValue.namespace + ":" + dimensionValue.path != "minecraft:overworld") {
-            return "Your home must be in the Overworld"
+            return Text.literal("Your home must be in the Overworld")
         }
 
         return null
