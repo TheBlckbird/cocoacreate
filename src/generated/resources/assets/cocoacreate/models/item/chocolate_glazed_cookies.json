@@ -1,6 +1,6 @@
 {
   "parent": "minecraft:item/generated",
   "textures": {
-    "layer0": "weigel:item/home"
+    "layer0": "cocoacreate:item/chocolate_glazed_cookies"
   }
 }

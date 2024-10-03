@@ -67,7 +67,7 @@ loom {
 	splitEnvironmentSourceSets()
 
 	mods {
-		"weigel" {
+		"cocoacreate" {
 			sourceSet sourceSets.main
 			sourceSet sourceSets.client
 		}
@@ -80,7 +80,7 @@ loom {
 			name "Data Generation"
 			vmArg "-Dfabric-api.datagen"
 			vmArg "-Dfabric-api.datagen.output-dir=${file("src/generated/resources")}"
-			vmArg "-Dfabric-api.datagen.modid=weigel"
+			vmArg "-Dfabric-api.datagen.modid=cocoacreate"
 			vmArg "-Dporting_lib.datagen.existing_resources=${file("src/main/resources")}"
 
 			runDir "build/datagen"
